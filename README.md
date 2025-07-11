@@ -30,8 +30,21 @@ tw2x <inputFile> [outputFile]
 ### Arguments
 
 * `<inputFile>` — Required. Path to your Tailwind theme file (containing @theme { ... } block).
-
 * `[outputFile]` — Optional. Defaults to Colors.xaml next to your input file.
+
+### Optional target framework
+
+```bash
+tw2x theme.txt --target maui
+tw2x theme.txt MyColors.xaml -t avalonia
+```
+
+Options for `--target`:
+* `maui` - .NET MAUI (default)
+* `wpf` - WPF
+* `avalonia` - Avalonia UI
+* `uwp` - UWP
+* `uno` - Uno Platform
 
 ## Examples
 
