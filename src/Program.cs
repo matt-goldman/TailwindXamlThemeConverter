@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Diagnostics;
+using System.Globalization;
 using TailwindXamlThemeConverter;
 using TwToXaml;
 
@@ -30,9 +31,41 @@ if (!File.Exists(inputPath))
     return;
 }
 
-var outputPath = args.Length >= 2
-    ? args[1]
-    : Path.Combine(Path.GetDirectoryName(inputPath) ?? "", "Colors.xaml");
+var outputPath = string.Empty;
+
+if (args.Length >= 2)
+{
+    for (int n = 1; n < args.Length; n++)
+    {
+        var arg = args[n];
+        var previousArg = n > 1 ? args[n - 1] : string.Empty;
+        if (previousArg == "--target" || previousArg == "-t")
+        {
+            // Skip this argument, it's handled by the target option
+            continue;
+        }
+        else if (arg.StartsWith("--") || arg.StartsWith("-"))
+        {
+            // This is an option, skip it
+            continue;
+        }
+        else
+        {
+            outputPath = arg;
+            break; // Stop after the first non-option argument
+        }
+    }
+}
+
+if (string.IsNullOrEmpty(outputPath))
+{
+    outputPath = Path.Combine(Path.GetDirectoryName(inputPath) ?? ".", "Colors.xaml");
+}
+else if (Path.GetExtension(outputPath).ToLower() != ".xaml")
+{
+    Console.WriteLine($"❌ Invalid output file extension: {outputPath}. Expected .xaml");
+    return;
+}
 
 // Defaults
 string target = "maui"; // sensible default
@@ -75,34 +108,71 @@ var dict = new Dictionary<string, string>();
 foreach (var line in lines)
 {
     var trimmed = line.Trim();
+
+    Debug.WriteLine($"Processing: {trimmed}");
+
     if (!trimmed.StartsWith("--color-"))
+    {
+        Debug.WriteLine($"Skipping line: {trimmed} (does not start with --color-)");
+
         continue;
+    }
 
     var parts = trimmed.Split(':', 2);
     if (parts.Length < 2)
+    {
+        Debug.WriteLine($"Skipping line: {trimmed} (does not contain a colon)");
+
         continue;
+    }
 
     var keyRaw = parts[0].Replace("--color-", "").Trim();
+
+    Debug.WriteLine($"Key raw: {keyRaw}");
+
     var key = string.Join("", keyRaw.Split('-').Select(s => char.ToUpper(s[0]) + s.Substring(1)));
 
     var value = parts[1].Trim().TrimEnd(';');
 
-    if (value.StartsWith("#"))
+    var hexValue = string.Empty;
+
+    Debug.WriteLine($"Key: {key}, Value: {value}");
+
+    if (value.StartsWith('#'))
     {
-        dict[key] = value.ToUpper();
+        Debug.WriteLine($"Hex color detected: {value}");
+
+        hexValue = value.ToUpper();
     }
     else if (value.StartsWith("oklch"))
     {
+        Debug.WriteLine($"OKLCH color detected: {value}");
+
         var oklchStr = value.Replace("oklch(", "").Replace(")", "").Trim();
+
+        Debug.WriteLine($"OKLCH string: {oklchStr}");
+
         var nums = oklchStr.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
-        double l = double.Parse(nums[0], CultureInfo.InvariantCulture) * 100;
+        double l = double.Parse(nums[0], CultureInfo.InvariantCulture);
         double c = double.Parse(nums[1], CultureInfo.InvariantCulture);
         double h = double.Parse(nums[2], CultureInfo.InvariantCulture);
 
         var hex = ColorConverter.OklchToHex(l, c, h);
-        dict[key] = hex;
+
+        Debug.WriteLine($"Converted OKLCH to hex: {hex}");
+
+        hexValue = hex;
     }
+
+    var existingKey = dict.FirstOrDefault(kvp => kvp.Value == hexValue).Key;
+
+    if (!string.IsNullOrEmpty(existingKey))
+    {
+        Console.WriteLine($"⚠️ Warning: Duplicate color detected for key '{key}'. Using existing key '{existingKey}' with value '{hexValue}'.");
+    }
+    
+    dict.TryAdd(key, hexValue);
 }
 
 dict.TryAdd("Black", "#000000");
@@ -120,7 +190,11 @@ sb.AppendLine();
 
 foreach (var kvp in dict.OrderBy(k => k.Key))
 {
-    sb.AppendLine($"  <Color x:Key=\"{kvp.Key}\">{kvp.Value}</Color>");
+    var line = $"  <Color x:Key=\"{kvp.Key}\">{kvp.Value}</Color>";
+
+    Debug.WriteLine($"Adding line: {line}");
+
+    sb.AppendLine(line);
 }
 
 sb.AppendLine();

@@ -9,7 +9,7 @@
     <AssemblyName>tw2x</AssemblyName>
     <ToolCommandName>tw2x</ToolCommandName>
     <PackageId>tw2x</PackageId> <!-- Choose a unique ID for NuGet if publishing -->
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
     <Authors>Matt Goldman</Authors>
     <Description>Convert Tailwind OKLCH theme files to XAML ResourceDictionary.</Description>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
