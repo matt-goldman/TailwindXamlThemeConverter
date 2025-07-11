@@ -18,6 +18,19 @@
     <PackageProjectUrl>https://github.com/matt-goldman/TailwindXamlThemeConverter</PackageProjectUrl>
     <RepositoryUrl>https://github.com/matt-goldman/TailwindXamlThemeConverter</RepositoryUrl>
     <PackageTags>xaml; dotnetmaui; maui</PackageTags>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
 </Project>
