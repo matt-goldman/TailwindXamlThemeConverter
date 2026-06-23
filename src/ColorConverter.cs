@@ -2,7 +2,7 @@ namespace TwToXaml;
 
 public class ColorConverter
 {
-    public static string OklchToHex(double L, double C, double hDeg)
+    public static string OklchToHex(double L, double C, double hDeg, double alpha = 1.0)
     {
         double a = Math.Cos(hDeg * Math.PI / 180.0) * C;
         double b = Math.Sin(hDeg * Math.PI / 180.0) * C;
@@ -34,6 +34,11 @@ public class ColorConverter
         int gHex = (int)Math.Round(g * 255);
         int bHex = (int)Math.Round(bC * 255);
 
-        return $"#{rHex:X2}{gHex:X2}{bHex:X2}";
+        if (alpha >= 1.0)
+            return $"#{rHex:X2}{gHex:X2}{bHex:X2}";
+
+        int aHex = (int)Math.Round(Math.Max(0, Math.Min(1, alpha)) * 255);
+
+        return $"#{aHex:X2}{rHex:X2}{gHex:X2}{bHex:X2}";
     }
 }
